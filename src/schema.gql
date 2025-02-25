@@ -1,0 +1,22 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type KeyValue {
+  key: String!
+  value: JSON!
+}
+
+"""JSON custom scalar type"""
+scalar JSON
+
+type Query {
+  getValue(key: String!): JSON
+  searchValues(contains: JSON, limit: Float, cursor: String): [KeyValue!]!
+}
+
+type Mutation {
+  setValue(key: String!, value: JSON!): Boolean!
+  deleteValue(key: String!): Boolean!
+  putManyValues(entries: [[String!]!]!, batchSize: Float): Boolean!
+}
