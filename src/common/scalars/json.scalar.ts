@@ -18,7 +18,11 @@ export class JSONScalar implements CustomScalar<any, any> {
       return JSON.parse(ast.value);
     }
     if (ast.kind === Kind.OBJECT) {
-      throw new Error('Not sure how to parse object value');
+      const value = {};
+      ast.fields.forEach((field) => {
+        value[field.name.value] = this.parseLiteral(field.value);
+      });
+      return value;
     }
     return null;
   }

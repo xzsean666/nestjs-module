@@ -7,7 +7,7 @@ import {
   Field,
 } from '@nestjs/graphql';
 import { DBService } from './common/db.service';
-import { KVDatabase } from './utils/PGKVDatabase';
+import { KVDatabase } from './main/src/sdk/index';
 
 @ObjectType()
 export class KeyValue {
@@ -35,6 +35,8 @@ export class AppResolver {
     @Args('key') key: string,
     @Args('value', { type: () => JSON }) value: any,
   ) {
+    console.log(key);
+    console.log(value);
     await this.db.put(key, value);
     return true;
   }
@@ -46,11 +48,15 @@ export class AppResolver {
 
   @Query(() => [KeyValue])
   async searchValues(
-    @Args('contains', { type: () => JSON, nullable: true }) contains?: object,
+    @Args('contains', { type: () => JSON, nullable: true }) contains?: JSON,
     @Args('limit', { type: () => Number, nullable: true }) limit?: number,
     @Args('cursor', { nullable: true }) cursor?: string,
   ) {
-    const { data } = await this.db.searchJson({ contains, limit, cursor });
+    const { data } = await this.db.searchJson({
+      contains: contains,
+      limit,
+      cursor,
+    });
     return data.map((item) => ({
       key: item.key,
       value: item.value,

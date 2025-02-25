@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { KVDatabase } from '../utils/PGKVDatabase';
+import { KVDatabase } from '../main/src/sdk/index';
 import { config } from '../config';
 
 @Injectable()
