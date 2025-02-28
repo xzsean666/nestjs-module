@@ -1,16 +1,25 @@
 #!/bin/bash
 
+# 检查并安装 lsof
+if ! command -v lsof &> /dev/null; then
+    echo "正在安装必要的工具 lsof..."
+    apt-get update && apt-get install -y lsof
+fi
+
 # 检查是否提供了参数
 if [ $# -eq 0 ]; then
     echo "请提供参数: --start 或 --stop"
     exit 1
 fi
 
+
+PORT=$(grep "^PORT=" .env 2>/dev/null | cut -d '=' -f2 || echo "3000")
+
 case "$1" in
     --start)
         # 检查端口是否已被占用
-        if lsof -i:3000 > /dev/null; then
-            echo "端口 3000 已被占用，请先停止现有服务"
+        if lsof -i:$PORT > /dev/null; then
+            echo "端口 $PORT 已被占用，请先停止现有服务"
             exit 1
         fi
 
@@ -48,8 +57,8 @@ case "$1" in
         sleep 2
 
         # 再次检查端口是否还在使用
-        if lsof -i:3000 > /dev/null; then
-            echo "警告：端口 3000 仍在使用，尝试强制终止进程..."
+        if lsof -i:$PORT > /dev/null; then
+            echo "警告：端口 $PORT 仍在使用，尝试强制终止进程..."
             kill -9 $PID 2>/dev/null
             pkill -9 -f "node dist/main.js"
         fi
