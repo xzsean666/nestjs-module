@@ -1,14 +1,10 @@
-import {
-  Args,
-  Mutation,
-  Query,
-  Resolver,
-  ObjectType,
-  Field,
-} from '@nestjs/graphql';
+import { Query, Resolver, ObjectType, Field } from '@nestjs/graphql';
 import { DBService } from './common/db.service';
-import { KVDatabase } from './main/src/sdk/index';
-
+import { KVDatabase } from './sdk/index';
+import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
+import type { User } from '@supabase/supabase-js';
+import { UseGuards } from '@nestjs/common';
+import { cacheFn } from './common/cache.service';
 @ObjectType()
 export class KeyValue {
   @Field()
@@ -19,58 +15,15 @@ export class KeyValue {
 }
 
 @Resolver(() => KeyValue)
+@UseGuards(SupabaseAuthGuard)
 export class AppResolver {
   private db: KVDatabase;
   constructor(private readonly dbService: DBService) {
     this.db = dbService.getDBInstance('test');
   }
-
   @Query(() => JSON, { nullable: true })
-  async getValue(@Args('key') key: string) {
-    return this.db.get(key);
-  }
-
-  @Mutation(() => Boolean)
-  async setValue(
-    @Args('key') key: string,
-    @Args('value', { type: () => JSON }) value: any,
-  ) {
-    console.log(key);
-    console.log(value);
-    await this.db.put(key, value);
-    return true;
-  }
-
-  @Mutation(() => Boolean)
-  async deleteValue(@Args('key') key: string) {
-    return this.db.delete(key);
-  }
-
-  @Query(() => [KeyValue])
-  async searchValues(
-    @Args('contains', { type: () => JSON, nullable: true }) contains?: JSON,
-    @Args('limit', { type: () => Number, nullable: true }) limit?: number,
-    @Args('cursor', { nullable: true }) cursor?: string,
-  ) {
-    const { data } = await this.db.searchJson({
-      contains: contains,
-      limit,
-      cursor,
-    });
-    return data.map((item) => ({
-      key: item.key,
-      value: item.value,
-    }));
-  }
-
-  @Mutation(() => Boolean)
-  async putManyValues(
-    @Args('entries', { type: () => [[String, JSON]] })
-    entries: Array<[string, any]>,
-    @Args('batchSize', { type: () => Number, nullable: true })
-    batchSize?: number,
-  ) {
-    await this.db.putMany(entries, batchSize);
-    return true;
+  @cacheFn(1 * 60 * 60)
+  currentUser(@CurrentUser() user: User) {
+    return user;
   }
 }

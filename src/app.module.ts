@@ -5,7 +5,9 @@ import { JSONScalar } from './common/scalars/json.scalar';
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppResolver } from './app.resolver';
 import { join } from 'path';
-import { DBService } from './common/db.service';
+import { GlobalModule } from './common/global.module';
+import { UserModule } from './user/user.module';
+
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -13,9 +15,12 @@ import { DBService } from './common/db.service';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
       playground: false,
+      context: ({ req }) => ({ req }),
     } as ApolloDriverConfig),
+    GlobalModule,
+    UserModule,
   ],
   controllers: [],
-  providers: [JSONScalar, AppResolver, DBService],
+  providers: [AppResolver],
 })
 export class AppModule {}

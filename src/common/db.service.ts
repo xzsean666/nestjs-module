@@ -1,5 +1,5 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { KVDatabase } from '../main/src/sdk/index';
+import { KVDatabase } from '../sdk/index';
 import { config } from '../config';
 
 @Injectable()
@@ -16,6 +16,7 @@ export class DBService implements OnModuleDestroy {
   }
 
   getDBInstance(tableName: string): KVDatabase {
+    tableName = `${config.database.prefix}_${tableName}`;
     if (!this.dbInstances.has(tableName)) {
       this.dbInstances.set(tableName, new KVDatabase(this.dbUrl, tableName));
     }

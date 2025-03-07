@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "build:sdk": "npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/main"
+    "build:sdk": "npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
@@ -27,12 +27,14 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/graphql": "^13.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "@supabase/supabase-js": "^2.49.1",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "graphql": "^16.10.0",
     "pg": "^8.13.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sqlite3": "^5.1.7",
     "typeorm": "^0.3.20"
   },
   "devDependencies": {
@@ -78,5 +80,10 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sqlite3"
+    ]
   }
 }
