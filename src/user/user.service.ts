@@ -1,6 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { DBService } from '../common/db.service';
-import { KVDatabase } from '../sdk/index';
+import { KVDatabase } from '../helpers/sdk/index';
 import type { User } from '@supabase/supabase-js';
 @Injectable()
 export class UserService {
