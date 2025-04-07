@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { config } from './config';
+import { graphqlUploadExpress } from 'graphql-upload-minimal';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,7 +10,19 @@ async function bootstrap() {
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-apollo-operation-name',
+      'apollo-require-preflight',
+    ],
   });
+  app.use(
+    graphqlUploadExpress({
+      maxFileSize: 100000000, // 100 MB
+      maxFiles: 10,
+    }),
+  );
 
   const port = config.server.port || 3000;
 

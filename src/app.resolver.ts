@@ -1,10 +1,9 @@
-import { Query, Resolver, ObjectType, Field } from '@nestjs/graphql';
+import { Query, Resolver, ObjectType, Field, Args } from '@nestjs/graphql';
 import { DBService } from './common/db.service';
 import { KVDatabase } from './helpers/sdk';
-import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
-import type { User } from '@supabase/supabase-js';
-import { UseGuards, CanActivate } from '@nestjs/common';
-import { cacheFn } from './common/cache.service';
+// import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
+import { UseGuards } from '@nestjs/common';
+
 @ObjectType()
 export class KeyValue {
   @Field()
@@ -20,12 +19,13 @@ export class AppResolver {
   constructor(private readonly dbService: DBService) {
     this.db = dbService.getDBInstance('test');
   }
-  @Query(() => JSON, { nullable: true })
-  @cacheFn(1 * 60 * 60)
-  @UseGuards(SupabaseAuthGuard)
-  currentUser(@CurrentUser() user: User) {
-    return user;
-  }
+  // @Query(() => JSON, { nullable: true })
+  // @UseGuards(SupabaseAuthGuard)
+  // @cacheFn(1 * 60 * 60)
+  // currentUser(@CurrentUser() user: User) {
+  //   return user;
+  // }
+
   @Query(() => String)
   @UseGuards()
   test() {

@@ -2,52 +2,9 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type Profile {
-  real_name: String
-  official_id: String
-  phone: String
-  address: String
-  preferred_language: String
-}
-
-type MonthlyCheckin {
-  yearMonth: String!
-  checkedInDays: [Int!]!
-
-  """JSON of checkin details"""
-  details: JSON!
-}
-
-type CheckinStats {
-  totalCheckins: Int!
-  lastCheckin: String
-  streak: Int!
-
-  """JSON of monthly stats"""
-  monthlyStats: JSON!
-}
-
-input ProfileInput {
-  real_name: String
-  official_id: String
-  phone: String
-  address: String
-  preferred_language: String
-}
-
 """JSON custom scalar type"""
 scalar JSON
 
 type Query {
-  currentUser: JSON
   test: String!
-  userPrivateProfile: Profile
-  CheckinStats: CheckinStats!
-  CurrentMonthCheckin: MonthlyCheckin!
-  CheckinHistory(year: Int!, month: Int!): MonthlyCheckin!
-}
-
-type Mutation {
-  updateUserPrivateProfile(profile: ProfileInput!): JSON!
-  userCheckin: JSON!
 }

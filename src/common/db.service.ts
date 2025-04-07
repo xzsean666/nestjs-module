@@ -2,6 +2,8 @@ import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { KVDatabase } from '../helpers/sdk/index';
 import { config } from '../config';
 
+export { KVDatabase };
+
 @Injectable()
 export class DBService implements OnModuleDestroy {
   private dbInstances: Map<string, KVDatabase> = new Map();
@@ -30,3 +32,5 @@ export class DBService implements OnModuleDestroy {
     this.dbInstances.clear();
   }
 }
+
+export const db_tables = {};

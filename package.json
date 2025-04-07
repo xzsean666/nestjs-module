@@ -23,15 +23,24 @@
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
+    "@google/generative-ai": "^0.24.0",
     "@nestjs/apollo": "^13.0.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/graphql": "^13.0.3",
+    "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
     "@supabase/supabase-js": "^2.49.1",
     "axios": "^1.7.9",
+    "commander": "^13.1.0",
     "dotenv": "^16.4.7",
+    "form-data": "^4.0.2",
     "graphql": "^16.10.0",
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-upload-minimal": "^1.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "2.16.105",
     "pg": "^8.13.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
@@ -47,8 +56,9 @@
     "@swc/cli": "^0.6.0",
     "@swc/core": "^1.10.7",
     "@types/express": "^5.0.0",
+    "@types/form-data": "^2.5.2",
     "@types/jest": "^29.5.14",
-    "@types/node": "^22.10.7",
+    "@types/node": "^22.13.5",
     "@types/supertest": "^6.0.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
@@ -84,7 +94,11 @@
   },
   "pnpm": {
     "onlyBuiltDependencies": [
+      "@apollo/protobufjs",
+      "@nestjs/core",
+      "@swc/core",
       "sqlite3"
     ]
-  }
+  },
+  "type": "commonjs"
 }

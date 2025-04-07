@@ -151,38 +151,20 @@ export class KVDatabase {
       value,
     });
   }
-  async merge(
-    key: string,
-    partialValue: any,
-    deep: boolean = true
-  ): Promise<boolean> {
+  async merge(key: string, partialValue: any): Promise<boolean> {
     await this.ensureInitialized();
 
-    // 确保深度合并函数存在
-    if (deep) {
-      await this.ensureJsonbDeepMergeFunction();
-    }
-
-    const query = deep
-      ? `
-        INSERT INTO "${this.tableName}" (key, value, created_at, updated_at)
-        VALUES ($1, $2, NOW(), NOW())
-        ON CONFLICT (key) DO UPDATE
-        SET value = jsonb_deep_merge(
-          COALESCE("${this.tableName}".value, '{}'::jsonb),
-          $2::jsonb
-        ),
-        updated_at = NOW()
-        RETURNING value
-      `
-      : `
-        INSERT INTO "${this.tableName}" (key, value, created_at, updated_at)
-        VALUES ($1, $2, NOW(), NOW())
-        ON CONFLICT (key) DO UPDATE
-        SET value = COALESCE("${this.tableName}".value, '{}'::jsonb) || $2::jsonb,
-        updated_at = NOW()
-        RETURNING value
-      `;
+    const query = `
+      INSERT INTO "${this.tableName}" (key, value, created_at, updated_at)
+      VALUES ($1, $2, NOW(), NOW())
+      ON CONFLICT (key) DO UPDATE
+      SET value = CASE
+        WHEN "${this.tableName}".value IS NULL THEN $2::jsonb
+        ELSE "${this.tableName}".value || $2::jsonb
+      END,
+      updated_at = NOW()
+      RETURNING value
+    `;
 
     const result = await this.db.query(query, [
       key,
@@ -191,7 +173,6 @@ export class KVDatabase {
 
     return !!result?.length;
   }
-
   async get<T = any>(key: string, expire?: number): Promise<T | null> {
     await this.ensureInitialized();
     const record = await this.db.findOne({ where: { key } });
@@ -208,8 +189,33 @@ export class KVDatabase {
         return null;
       }
     }
-
     return record.value;
+  }
+  async getValue(value: any): Promise<any> {
+    await this.ensureInitialized();
+    // Use proper JSONB comparison with query builder
+    const existing = await this.db
+      .createQueryBuilder()
+      .where("value = :value::jsonb", { value: JSON.stringify(value) })
+      .getOne();
+    return existing;
+  }
+  async isValueExists(value: any): Promise<boolean> {
+    await this.ensureInitialized();
+    const existing = await this.db
+      .createQueryBuilder()
+      .where("value = :value::jsonb", { value: JSON.stringify(value) })
+      .getOne();
+    return !!existing;
+  }
+  async getValues(value: any): Promise<any> {
+    await this.ensureInitialized();
+    // Use proper JSONB comparison with query builder
+    const existing = await this.db
+      .createQueryBuilder()
+      .where("value = :value::jsonb", { value: JSON.stringify(value) })
+      .getMany();
+    return existing;
   }
 
   async delete(key: string): Promise<boolean> {
@@ -229,6 +235,44 @@ export class KVDatabase {
       value,
     });
   }
+  async addUniquePair(key: string, value: any): Promise<void> {
+    await this.ensureInitialized();
+
+    // Use a proper JSONB comparison query
+    const existing = await this.db
+      .createQueryBuilder()
+      .where("key = :key", { key })
+      .andWhere("value = :value::jsonb", { value: JSON.stringify(value) })
+      .getOne();
+
+    if (existing) {
+      throw new Error(`Key-value pair already exists for key "${key}"`);
+    }
+
+    await this.db.save({
+      key,
+      value,
+    });
+  }
+  async addUniqueValue(key: string, value: any): Promise<void> {
+    await this.ensureInitialized();
+
+    // Use proper JSONB comparison with query builder
+    const existing = await this.db
+      .createQueryBuilder()
+      .where("value = :value::jsonb", { value: JSON.stringify(value) })
+      .getOne();
+
+    if (existing) {
+      const existingKey = existing.key;
+      throw new Error(`Value already exists with key "${existingKey}"`);
+    }
+
+    await this.db.save({
+      key,
+      value,
+    });
+  }
 
   async close(): Promise<void> {
     if (this.initialized && this.dataSource?.isInitialized) {
@@ -237,10 +281,20 @@ export class KVDatabase {
     }
   }
 
-  // 获取所有键值对
-  async getAll(): Promise<Map<string, any>> {
+  // 获取所有键值对，支持分页
+  async getAll(offset?: number, limit?: number): Promise<Map<string, any>> {
     await this.ensureInitialized();
-    const records = await this.db.find();
+    const options: any = {};
+
+    if (typeof offset === "number") {
+      options.offset = offset;
+    }
+
+    if (typeof limit === "number") {
+      options.limit = limit;
+    }
+
+    const records = await this.db.find(options);
     return new Map(
       records.map((record: { key: any; value: any }) => [
         record.key,
@@ -1019,5 +1073,29 @@ export class KVDatabase {
     }
 
     return result;
+  }
+
+  /**
+   * 获取指定数量的随机记录
+   * @param count 需要获取的随机记录数量
+   * @returns 随机记录数组
+   */
+  async getRandomData(
+    count: number = 1
+  ): Promise<Array<{ key: string; value: any }>> {
+    await this.ensureInitialized();
+
+    // 使用 ORDER BY RANDOM() 获取随机记录
+    const results = await this.db
+      .createQueryBuilder(this.tableName)
+      .select([
+        `${this.tableName}.key as "key"`,
+        `${this.tableName}.value as "value"`,
+      ])
+      .orderBy("RANDOM()")
+      .limit(count)
+      .getRawMany();
+
+    return results;
   }
 }
