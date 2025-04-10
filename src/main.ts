@@ -18,10 +18,7 @@ async function bootstrap() {
     ],
   });
   app.use(
-    graphqlUploadExpress({
-      maxFileSize: 100000000, // 100 MB
-      maxFiles: 10,
-    }),
+    graphqlUploadExpress(),
   );
 
   const port = config.server.port || 3000;
