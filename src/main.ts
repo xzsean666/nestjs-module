@@ -17,9 +17,7 @@ async function bootstrap() {
       'apollo-require-preflight',
     ],
   });
-  app.use(
-    graphqlUploadExpress(),
-  );
+  app.use(graphqlUploadExpress());
 
   const port = config.server.port || 3000;
 

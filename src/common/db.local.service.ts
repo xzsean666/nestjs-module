@@ -5,7 +5,7 @@ import { config } from '../config';
 export { SqliteKVDatabase };
 
 @Injectable()
-export class DBService implements OnModuleDestroy {
+export class DBLocalService implements OnModuleDestroy {
   private dbInstances: Map<string, SqliteKVDatabase> = new Map();
   private readonly dbUrl: string;
 
@@ -36,4 +36,7 @@ export class DBService implements OnModuleDestroy {
   }
 }
 
-export const db_tables = {};
+export const db_local_tables = {
+  heartbeat: 'db_heartbeat',
+  heartbeat_config: 'db_heartbeat_config',
+};

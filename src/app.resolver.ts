@@ -3,6 +3,7 @@ import { DBService } from './common/db.service';
 import { KVDatabase } from './helpers/sdk';
 // import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
 import { UseGuards } from '@nestjs/common';
+import { AdminAuthGuard } from './common/admin_auth';
 
 @ObjectType()
 export class KeyValue {
@@ -30,5 +31,10 @@ export class AppResolver {
   @UseGuards()
   test() {
     return 'Hello World666';
+  }
+  @Query(() => String)
+  @UseGuards(AdminAuthGuard)
+  testadmin() {
+    return 'Hello admin';
   }
 }
