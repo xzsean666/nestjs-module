@@ -97,3 +97,131 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Project Structure
+
+```
+nestjs-module/
+├── src/                    # 源代码目录
+│   ├── config/            # 配置文件
+│   ├── common/            # 公共模块
+│   ├── utils/             # 工具函数
+│   ├── sdk/               # SDK 相关代码
+│   ├── helpers/           # 辅助功能
+│   ├── main.ts            # 应用入口
+│   ├── app.module.ts      # 主模块
+│   └── app.resolver.ts    # GraphQL 解析器
+├── test/                  # 测试代码
+├── dist/                  # 编译输出
+└── package.json           # 项目配置
+```
+
+## Main Features
+
+### 1. Database Support
+
+- PostgreSQL database support (`PostgresqlDbHelper.ts`)
+- SQLite database support (`SqliteKVDB.ts`)
+- Key-value storage functionality (`PGKVDatabase.ts`, `SqliteKVCache.ts`)
+
+### 2. Tools and Helper Functions
+
+- Encryption tools (`cryptoHelper.ts`)
+- JWT authentication (`jwtHelper.ts`)
+- GraphQL tools (`graphqlHelper.ts`, `graphqlHelperFetch.ts`)
+- Web3-related tools (`ethersUtils.ts`, `CCIPHelper.ts`)
+- Price service (`priceService.ts`)
+- MinIO storage support (`minioHelper.ts`)
+
+### 3. Authentication and Authorization
+
+- Admin authentication (`admin_auth.ts`)
+- JWT authentication support
+- Subscription token management (`subscription-token.service.ts`)
+
+### 4. Configuration Management
+
+- Environment variable configuration
+- Database configuration
+- Server configuration
+- Authentication configuration
+
+## Technology Stack
+
+- **Framework**: NestJS
+- **Language**: TypeScript
+- **API**: GraphQL
+- **Database**: PostgreSQL, SQLite
+- **Authentication**: JWT
+- **Storage**: MinIO
+- **Blockchain**: Web3/Ethers.js
+- **Testing**: Jest
+
+## Development Guide
+
+### Installing Dependencies
+
+```bash
+yarn install
+```
+
+### Running Development Server
+
+```bash
+yarn run start:dev
+```
+
+### Building the Project
+
+```bash
+yarn run build
+```
+
+### Running Tests
+
+```bash
+# Unit Tests
+yarn run test
+
+# E2E Tests
+yarn run test:e2e
+
+# Test Coverage
+yarn run test:cov
+```
+
+## Configuration Notes
+
+The project uses `.env` files for configuration, with main configuration items including:
+
+- Database connection (`DATABASE_URL`)
+- Server port (`PORT`)
+- Admin authentication code (`ADMIN_AUTH_CODE`)
+- Heartbeat timeout setting (`HEARTBEAT_TIMEOUT`)
+
+## Deployment
+
+The project supports multiple deployment methods, including:
+
+1. Local deployment
+2. Containerized deployment
+3. Cloud platform deployment
+
+## Important Notes
+
+1. Ensure correct environment variable configuration
+2. Database connection must be correctly set up
+3. Authentication-related keys must be handled securely
+4. Pay attention to security configuration during production deployment
+
+## Contribution Guidelines
+
+1. Fork the project
+2. Create a feature branch
+3. Submit changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+The project uses the MIT license.
