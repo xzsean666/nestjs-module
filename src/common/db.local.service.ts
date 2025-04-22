@@ -37,6 +37,5 @@ export class DBLocalService implements OnModuleDestroy {
 }
 
 export const db_local_tables = {
-  heartbeat: 'db_heartbeat',
-  heartbeat_config: 'db_heartbeat_config',
+  lst: 'db_lst',
 };

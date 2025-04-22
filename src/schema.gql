@@ -7,4 +7,5 @@ scalar JSON
 
 type Query {
   test: String!
+  testadmin: String!
 }

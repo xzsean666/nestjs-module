@@ -14,10 +14,4 @@ export const config = {
   server: {
     port: process.env.PORT || 3000,
   },
-  heartbeat: {
-    timeout: process.env.HEARTBEAT_TIMEOUT || 20 * 60 * 1000,
-    project: {
-      fed: 20 * 60 * 1000,
-    },
-  },
 };
