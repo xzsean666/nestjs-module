@@ -4,13 +4,14 @@ import { KVDatabase } from './helpers/sdk';
 // import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
 import { UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from './common/admin_auth';
+import { GraphQLJSON } from 'graphql-type-json';
 
 @ObjectType()
 export class KeyValue {
   @Field()
   key: string;
 
-  @Field(() => JSON)
+  @Field(() => GraphQLJSON)
   value: any;
 }
 

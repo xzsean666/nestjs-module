@@ -2,9 +2,6 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-"""JSON custom scalar type"""
-scalar JSON
-
 type Query {
   test: String!
   testadmin: String!

@@ -8,7 +8,6 @@ export { KVDatabase };
 export class DBService implements OnModuleDestroy {
   private dbInstances: Map<string, KVDatabase> = new Map();
   private readonly dbUrl: string;
-
   constructor() {
     const dbUrl = config.database.url;
     if (!dbUrl) {
@@ -18,7 +17,10 @@ export class DBService implements OnModuleDestroy {
   }
 
   getDBInstance(tableName: string): KVDatabase {
-    tableName = `${config.database.prefix}_${tableName}`;
+    if (config.database.prefix) {
+      tableName = `${config.database.prefix}_${tableName}`;
+    }
+
     if (!this.dbInstances.has(tableName)) {
       this.dbInstances.set(tableName, new KVDatabase(this.dbUrl, tableName));
     }
@@ -33,4 +35,10 @@ export class DBService implements OnModuleDestroy {
   }
 }
 
-export const db_tables = {};
+export const db_tables = {
+  invite_code: 'invite_code',
+  user_otp: 'user_otp',
+  user_ex: 'user_ex',
+  user_history: 'user_history',
+  user_admin: 'user_admin',
+};

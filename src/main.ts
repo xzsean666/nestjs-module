@@ -49,6 +49,10 @@ async function bootstrap() {
   };
 
   app.enableCors(corsOptions);
+  // app.enableCors({
+  //   origin: '*',
+  //   credentials: false,
+  // });
   app.use(graphqlUploadExpress());
 
   const port = config.server.port || 3000;
