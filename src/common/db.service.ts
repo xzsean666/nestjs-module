@@ -54,15 +54,12 @@ export const db_tables = {
   user_payment: 'user_payment',
   promote_codes: 'promote_codes',
 };
-import { WordFlowCardType } from 'src/types';
+
 export const keys = {
   user_study_cards: 'user_study_cards',
   user_study_cards_history: 'user_study_cards_history',
   user_study_cards_favorites: 'user_study_cards_favorites',
   user_study_plans_current: 'user_study_plans_current',
-  user_knowns_MIXED_CHINESE: `${WordFlowCardType.MIXED_CHINESE}_knowns`,
-  user_knowns_ENGLISH_ONLY: `${WordFlowCardType.ENGLISH_ONLY}_knowns`,
-  user_knowns_FILL_IN_BLANKS: `${WordFlowCardType.FILL_IN_BLANKS}_knowns`,
   user_knowns: 'user_knowns',
   user_marked_words: 'user_marked_words',
 };

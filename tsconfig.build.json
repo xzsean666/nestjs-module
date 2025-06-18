@@ -6,6 +6,7 @@
     "dist",
     "**/*spec.ts",
     "src/utils",
-    "src/sdk"
+    "src/sdk",
+    "src/payments"
   ]
 }

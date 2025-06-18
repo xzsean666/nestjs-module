@@ -6,9 +6,6 @@ import { AppResolver } from './app.resolver';
 import { join } from 'path';
 import { GlobalModule } from './common/global.module';
 import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { WordflowModule } from './wordflow/wordflow.module';
-import { JpushModule } from './mobile_common/jpush/jpush.module';
 
 @Module({
   imports: [
@@ -25,10 +22,7 @@ import { JpushModule } from './mobile_common/jpush/jpush.module';
       },
     } as ApolloDriverConfig),
     GlobalModule,
-    JpushModule,
     AuthModule,
-    UserModule,
-    WordflowModule,
   ],
   controllers: [],
   providers: [AppResolver],

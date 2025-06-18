@@ -4,7 +4,6 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { DBService, db_tables, PGKVDatabase } from '../common/db.service';
-import { CryptoHelper } from '../helpers/utils/encodeUtils/cryptoHelper';
 import { JWTHelper } from '../helpers/utils/encodeUtils/jwtHelper';
 import { config } from '../config';
 import { v4 as uuidv4 } from 'uuid';

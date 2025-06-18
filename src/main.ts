@@ -2,9 +2,32 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { config } from './config';
 import { graphqlUploadExpress } from 'graphql-upload-minimal';
+import * as compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 启用 gzip 压缩以减小响应体积，提升传输速度
+  app.use(
+    compression({
+      filter: (req, res) => {
+        // 对所有请求启用压缩，除非响应头中明确指定不压缩
+        if (req.headers['x-no-compression']) {
+          return false;
+        }
+        // 使用 compression 默认的过滤器
+        return compression.filter(req, res);
+      },
+      // 设置压缩级别 (1-9, 6为默认值，平衡压缩率和速度)
+      level: 6,
+      // 只对大于1KB的响应进行压缩
+      threshold: 1024,
+      // 设置内存使用级别 (1-9, 8为默认值)
+      memLevel: 8,
+      // 压缩窗口大小 (9-15, 15为默认值，更大的窗口提供更好的压缩率)
+      windowBits: 15,
+    }),
+  );
 
   // 启用 CORS，严格拦截未授权的请求
   const corsOptions = {
@@ -66,7 +89,9 @@ async function bootstrap() {
   const processInfo = process.env.pm_id
     ? `[Worker ${process.env.pm_id}]`
     : '[Standalone]';
-  console.log(`${processInfo} Server is running on port ${port}`);
+  console.log(
+    `${processInfo} Server is running on port ${port} with gzip compression enabled`,
+  );
 }
 
 bootstrap().catch((err) => {
