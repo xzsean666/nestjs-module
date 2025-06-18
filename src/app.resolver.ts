@@ -1,6 +1,6 @@
 import { Query, Resolver, ObjectType, Field, Args } from '@nestjs/graphql';
 import { DBService } from './common/db.service';
-import { KVDatabase } from './helpers/sdk';
+import { PGKVDatabase } from './common/db.service';
 // import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
 import { UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from './common/admin_auth';
@@ -17,7 +17,7 @@ export class KeyValue {
 
 @Resolver(() => KeyValue)
 export class AppResolver {
-  private db: KVDatabase;
+  private db: PGKVDatabase;
   constructor(private readonly dbService: DBService) {
     this.db = dbService.getDBInstance('test');
   }

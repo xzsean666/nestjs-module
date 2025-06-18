@@ -48,17 +48,25 @@ async function bootstrap() {
     ],
   };
 
-  app.enableCors(corsOptions);
-  // app.enableCors({
-  //   origin: '*',
-  //   credentials: false,
-  // });
+  // app.enableCors(corsOptions);
+  app.enableCors({
+    origin: '*',
+    credentials: false,
+  });
   app.use(graphqlUploadExpress());
 
-  const port = config.server.port || 3000;
+  // 优先使用环境变量中的端口（PM2 会设置），然后是配置文件中的端口
+  const port = process.env.PORT || config.server.port || 3000;
 
+  // 在集群模式下，PM2 会处理端口监听和负载均衡
+  // 每个工作进程只需要监听，PM2 会自动处理端口分配
   await app.listen(port);
-  console.log(`Server is running on port ${port}`);
+
+  // 添加进程信息日志，便于调试
+  const processInfo = process.env.pm_id
+    ? `[Worker ${process.env.pm_id}]`
+    : '[Standalone]';
+  console.log(`${processInfo} Server is running on port ${port}`);
 }
 
 bootstrap().catch((err) => {
