@@ -1,5 +1,5 @@
 // import { Injectable } from '@nestjs/common';
-// import { DBService, KVDatabase } from './db.service';
+// import { DBService, PGKVDatabase } from '../common/db.service';
 // import { OTPUtils, JWTHelper, CryptoHelper } from '../helpers/sdk';
 // import { randomUUID } from 'crypto';
 // import { config } from '../config';
@@ -7,10 +7,9 @@
 // @Injectable()
 // export class OTPService {
 //   protected readonly dbService: DBService;
-//   protected readonly userOTPDB: KVDatabase;
-//   protected readonly inviteCodeDB: KVDatabase;
+//   protected readonly userOTPDB: PGKVDatabase;
+//   protected readonly inviteCodeDB: PGKVDatabase;
 //   protected readonly otpUtils: OTPUtils;
-
 //   protected readonly jwtHelper: JWTHelper;
 
 //   constructor() {
@@ -38,10 +37,10 @@
 
 //     return result.data.length > 0;
 //   }
-//   async encodeSecret(secret: string) {
+//   encodeSecret(secret: string) {
 //     return CryptoHelper.encryptAES(secret, config.auth.JWT_SECRET);
 //   }
-//   async decodeSecret(secret: string) {
+//   decodeSecret(secret: string) {
 //     return CryptoHelper.decryptAES(secret, config.auth.JWT_SECRET);
 //   }
 //   async generateOTP(username: string, inviteCode: string) {
@@ -55,7 +54,7 @@
 //     }
 
 //     const result = await this.otpUtils.newSecret(username, 'Trading Dashboard');
-//     const encryptedSecret = await this.encodeSecret(result.secret);
+//     const encryptedSecret = this.encodeSecret(result.secret);
 //     await this.userOTPDB.merge(username, {
 //       secret: encryptedSecret,
 //       isActive: false,
@@ -72,7 +71,7 @@
 //     if (!userOTP) {
 //       throw new Error('User not found');
 //     }
-//     const decodedSecret = await this.decodeSecret(userOTP.secret);
+//     const decodedSecret = this.decodeSecret(userOTP.secret);
 //     const isValid = this.otpUtils.verifyToken(token, decodedSecret);
 //     if (!isValid) {
 //       throw new Error('Invalid OTP');
@@ -93,7 +92,7 @@
 //     if (!userOTP.isActive) {
 //       throw new Error('User not Active');
 //     }
-//     const decodedSecret = await this.decodeSecret(userOTP.secret);
+//     const decodedSecret = this.decodeSecret(userOTP.secret);
 //     const isValid = this.otpUtils.verifyToken(token, decodedSecret);
 //     if (!isValid) {
 //       throw new Error('Invalid OTP');
@@ -107,7 +106,7 @@
 //     );
 //     return accessToken;
 //   }
-//   async verifyAccessToken(accessToken: string) {
+//   verifyAccessToken(accessToken: string) {
 //     try {
 //       const decoded = this.jwtHelper.verifyToken(accessToken);
 //       return decoded;

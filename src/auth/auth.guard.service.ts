@@ -3,14 +3,11 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
-  Inject,
   createParamDecorator,
 } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-
-export interface IAuthService {
-  verifyAccessToken(token: string): Promise<any>;
-}
+import { JWTHelper } from 'src/helpers/sdk';
+import { config } from 'src/config';
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
@@ -21,11 +18,12 @@ export const CurrentUser = createParamDecorator(
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(
-    @Inject('AUTH_SERVICE') private readonly authService: IAuthService,
-  ) {}
+  private jwtHelper: JWTHelper;
+  constructor() {
+    this.jwtHelper = new JWTHelper(config.auth.JWT_SECRET);
+  }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext): boolean {
     const gqlContext = GqlExecutionContext.create(context);
     const { req } = gqlContext.getContext();
 
@@ -36,7 +34,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const decoded = await this.authService.verifyAccessToken(token);
+      const decoded = this.jwtHelper.verifyToken(token);
       req['user'] = decoded;
       return true;
     } catch {

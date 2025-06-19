@@ -9,7 +9,6 @@ import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { config } from '../config';
-import { cacheFn } from './cache.service';
 
 // User Model
 @ObjectType()
@@ -34,7 +33,6 @@ export class SupabaseService {
   }
 
   // 验证 JWT token
-  @cacheFn(5 * 60)
   async verifyToken(jwt: string): Promise<User> {
     try {
       const {
