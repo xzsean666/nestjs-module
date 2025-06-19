@@ -20,23 +20,18 @@ export class UserService {
   /**
    * 注册新用户
    */
-  async register(user_account: string): Promise<string> {
+  async register(user_account: string, user_id?: string): Promise<string> {
     const user = await this.userDb.get(user_account);
     if (user) {
       throw new ConflictException('User already exists');
     }
-    const user_id = uuidv4();
+    if (!user_id) {
+      user_id = uuidv4();
+    }
     await this.userDb.put(user_account, user_id);
     return user_id;
   }
 
-  async login(user_account: string): Promise<string> {
-    const user_id = await this.userDb.get(user_account);
-    if (!user_id) {
-      throw new BadRequestException('User not found');
-    }
-    return user_id;
-  }
   async getUserId(user_account: string): Promise<string> {
     let user_id = await this.userDb.get(user_account);
     if (!user_id) {
@@ -44,6 +39,7 @@ export class UserService {
     }
     return user_id;
   }
+
   async generateToken(
     user_account: string,
   ): Promise<{ token: string; user_id: string }> {

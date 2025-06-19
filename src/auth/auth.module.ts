@@ -6,6 +6,7 @@ import { GlobalModule } from '../common/global.module';
 import { UserService } from './user.service';
 import { AuthGuard } from './auth.guard.service';
 import { SupabaseService } from './supabase.service';
+import { InviteCodeService } from './invite-code.service';
 @Module({
   imports: [GlobalModule],
   providers: [
@@ -15,6 +16,7 @@ import { SupabaseService } from './supabase.service';
     UserService,
     AuthGuard,
     SupabaseService,
+    InviteCodeService,
   ],
   exports: [AuthGuard],
 })

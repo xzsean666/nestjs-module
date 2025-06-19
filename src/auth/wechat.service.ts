@@ -14,7 +14,7 @@ export class WeChatService {
   private readonly appId = config.wechat.WECHAT_APP_ID;
   private readonly appSecret = config.wechat.WECHAT_APP_SECRET;
 
-  async login(code: string) {
+  async verifyToken(code: string) {
     try {
       // 调用微信登录凭证校验接口
       const response = await axios.get<WeChatLoginResult>(
@@ -40,6 +40,7 @@ export class WeChatService {
         openid: response.data.openid,
         sessionKey: response.data.session_key,
         unionid: response.data.unionid,
+        user_id: response.data.unionid,
       };
     } catch (error) {
       throw new HttpException(

@@ -11,8 +11,8 @@ export class AuthService {
 
   async wechatLogin(code: string) {
     // Delegate to specialized WeChat service
-    const wechatResult = await this.wechatService.login(code);
-    const user_account = wechatResult.unionid;
+    const wechatResult = await this.wechatService.verifyToken(code);
+    const user_account = wechatResult.user_id;
     const user_info = await this.userService.generateToken(user_account);
     return user_info;
   }
