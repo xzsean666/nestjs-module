@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "cp:startsh": "cp src/utils/sh/nestjs.sh nestjs.sh",
-    "build:sdk": "pnpm cp:startsh && npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
+    "build:sdk": "npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
@@ -42,9 +42,11 @@
     "graphql-upload-minimal": "^1.6.1",
     "https-proxy-agent": "^7.0.6",
     "jsonwebtoken": "^9.0.2",
+    "otplib": "^12.0.1",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "2.16.105",
     "pg": "^8.13.3",
+    "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sqlite3": "^5.1.7",

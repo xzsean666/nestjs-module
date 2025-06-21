@@ -6,14 +6,16 @@ import { AppResolver } from './app.resolver';
 import { join } from 'path';
 import { GlobalModule } from './common/global.module';
 import { AuthModule } from './auth/auth.module';
+// import { JpushModule } from './mobile_common/jpush/jpush.module';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      playground: false, // 禁用默认 playground 以避免与自定义插件冲突
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
-      playground: false,
+      introspection: true,
       context: ({ req }) => ({ req }),
       installSubscriptionHandlers: true,
       subscriptions: {
@@ -23,6 +25,7 @@ import { AuthModule } from './auth/auth.module';
     } as ApolloDriverConfig),
     GlobalModule,
     AuthModule,
+    // JpushModule,
   ],
   controllers: [],
   providers: [AppResolver],

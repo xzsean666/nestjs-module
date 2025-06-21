@@ -3,7 +3,7 @@ import { DBService } from './common/db.service';
 import { PGKVDatabase } from './common/db.service';
 // import { SupabaseAuthGuard, CurrentUser } from './common/supabase.service';
 import { UseGuards } from '@nestjs/common';
-import { AdminAuthGuard } from './common/admin_auth';
+
 import { GraphQLJSON } from 'graphql-type-json';
 
 @ObjectType()
@@ -34,7 +34,6 @@ export class AppResolver {
     return 'Hello World666';
   }
   @Query(() => String)
-  @UseGuards(AdminAuthGuard)
   testadmin() {
     return 'Hello admin';
   }
