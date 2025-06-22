@@ -24,6 +24,12 @@ echo "开始检查更新: $(date '+%Y-%m-%d %H:%M:%S')"
 git config --global --add safe.directory "$(pwd)" 2>/dev/null || true
 git config --global --add safe.directory /app 2>/dev/null || true
 
+# 配置Git网络设置（解决HTTP/2问题）
+git config --global http.version HTTP/1.1
+git config --global http.postBuffer 1048576000
+git config --global http.lowSpeedLimit 0
+git config --global http.lowSpeedTime 999999
+
 # 检查是否在Git仓库中
 if [ ! -d ".git" ]; then
     echo "错误：当前目录不是Git仓库"

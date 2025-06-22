@@ -105,8 +105,19 @@ build_pm2_command() {
     local app_path="$2"
     local cmd="pm2 start \"$app_path\" --name \"$app_name\""
     
-    # Add instances parameter (-i)
-    cmd="$cmd -i $PM2_INSTANCES"
+    # 根据实例数选择模式
+    if [ "$PM2_INSTANCES" = "1" ]; then
+        # 单实例使用 fork 模式（不添加 -i 参数）
+        echo "使用 Fork 模式 (单进程)" >&2
+    else
+        # 多实例使用 cluster 模式
+        cmd="$cmd -i $PM2_INSTANCES"
+        if [ "$PM2_INSTANCES" = "max" ]; then
+            echo "使用 Cluster 模式 (最大CPU核心数)" >&2
+        else
+            echo "使用 Cluster 模式 (${PM2_INSTANCES}个进程)" >&2
+        fi
+    fi
     
     # Add node arguments
     cmd="$cmd --node-args=\"--max-old-space-size=${PM2_MAX_MEMORY%M}\""
