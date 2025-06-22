@@ -68,6 +68,11 @@ API_KEY=your-api-key-here
 SUPABASE_URL=your-supabase-url
 SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+
+# CICD 自动更新配置
+CICD_ENABLED=false                # 是否启用CICD自动更新
+GITHUB_TOKEN=                    # GitHub Personal Access Token，用于访问私有仓库
+POST_UPDATE_COMMAND=            # 更新后执行的命令，默认为 "./pm2.sh --stop && ./pm2.sh --start --build"
 ```
 
 ### 2. 构建和启动
@@ -138,6 +143,12 @@ docker-compose exec app pm2 restart all
 - `TIMEZONE`: 时区设置
 - `CRON_ENABLED`: 是否启用定时任务
 - `CRON_JOBS`: Cron任务配置
+
+### CICD 自动更新配置
+
+- `CICD_ENABLED`: 是否启用CICD自动更新
+- `GITHUB_TOKEN`: GitHub Personal Access Token
+- `POST_UPDATE_COMMAND`: 更新后执行的命令
 
 ## 目录结构
 
@@ -221,3 +232,98 @@ cd /app
 2. **用户权限**: 生产环境考虑使用非root用户
 3. **网络模式**: 根据需要选择合适的网络模式
 4. **日志安全**: 避免在日志中输出敏感信息
+
+## CICD 自动更新功能
+
+当 `CICD_ENABLED=true` 时，容器会自动：
+
+1. **每5分钟检查一次** GitHub 仓库是否有新的提交
+2. **自动拉取最新代码**（如果有更新）
+3. **执行更新后命令**（通过 `POST_UPDATE_COMMAND` 配置）
+4. **记录更新日志** 到 `/var/log/cicd.log`
+
+### 设置步骤：
+
+1. **生成 GitHub Token**：
+
+   - 访问 GitHub → Settings → Developer settings → Personal access tokens
+   - 生成一个新的 token，需要 `repo` 权限（用于私有仓库）
+
+2. **配置环境变量**：
+
+   ```env
+   CICD_ENABLED=true
+   GITHUB_TOKEN=ghp_your_personal_access_token_here
+   POST_UPDATE_COMMAND="./pm2.sh --stop && ./pm2.sh --start --build"
+   ```
+
+3. **启动容器**：
+   ```bash
+   docker-compose up -d --build
+   ```
+
+### 查看CICD日志：
+
+```bash
+# 查看CICD更新日志
+docker-compose exec app tail -f /var/log/cicd.log
+
+# 查看系统cron日志
+docker-compose exec app tail -f /var/log/cron.log
+
+# 进入容器检查cron任务
+docker-compose exec app crontab -l
+```
+
+## 日志文件位置
+
+- **应用日志**: `./logs/` (挂载到容器的 `/var/log/`)
+- **PM2日志**: `./logs/pm2-logs/` (挂载到容器的 `/root/.pm2/logs/`)
+- **CICD日志**: `./logs/cicd.log`
+- **Cron日志**: `./logs/cron.log`
+
+## 常用命令
+
+```bash
+# 查看容器状态
+docker-compose ps
+
+# 重启应用（不重启容器）
+docker-compose exec app ./pm2.sh --restart
+
+# 手动触发代码更新
+docker-compose exec app ./GSM.sh
+
+# 查看PM2进程
+docker-compose exec app pm2 list
+
+# 查看实时日志
+docker-compose exec app pm2 logs --raw
+```
+
+## 故障排除
+
+### 1. CICD功能不工作
+
+- 检查 `GITHUB_TOKEN` 是否正确设置
+- 确认 `CICD_ENABLED=true`
+- 查看 `/var/log/cicd.log` 日志
+
+### 2. 构建失败
+
+- 检查 `package.json` 中的构建脚本
+- 确认依赖安装正常
+- 查看容器启动日志
+
+### 3. PM2无法启动
+
+- 检查 `APP_MAIN_SCRIPT` 路径是否正确
+- 确认项目已正确构建
+- 查看 PM2 日志文件
+
+## 安全注意事项
+
+1. **不要将 GitHub Token 提交到代码仓库**
+2. **使用最小权限的 Token**（只授予必要的 repo 权限）
+3. **定期轮换 GitHub Token**
+4. **监控CICD日志**，确保没有异常活动

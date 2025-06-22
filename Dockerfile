@@ -23,8 +23,10 @@ ENV TIMEZONE=Asia/Shanghai
 ENV BUILD_ENABLED=true
 ENV CRON_ENABLED=false
 ENV CRON_JOBS=""
+ENV CICD_ENABLED=false
+ENV POST_UPDATE_COMMAND="./pm2.sh --restart --build"
 
-# 安装必要的系统依赖
+# 安装必要的系统依赖，包括git
 RUN apt-get update && apt-get install -y \
     python3 \
     build-essential \
@@ -32,6 +34,7 @@ RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
     cron \
     tzdata \
+    git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -49,6 +52,10 @@ COPY package.json pnpm-lock.yaml ./
 
 # 安装依赖
 RUN pnpm install
+
+# 复制GSM.sh脚本并设置权限
+COPY GSM.sh ./
+RUN chmod +x ./GSM.sh
 
 # 创建启动脚本
 RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
@@ -75,12 +82,30 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo '  echo "✅ 时区设置为: $TIMEZONE"' >> /usr/local/bin/startup.sh && \
     echo 'fi' >> /usr/local/bin/startup.sh && \
     echo '' >> /usr/local/bin/startup.sh && \
-    echo '# 检查是否启用Cron' >> /usr/local/bin/startup.sh && \
-    echo 'if [ "$CRON_ENABLED" = "true" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '# 检查是否启用Cron或CICD' >> /usr/local/bin/startup.sh && \
+    echo 'if [ "$CRON_ENABLED" = "true" ] || [ "$CICD_ENABLED" = "true" ]; then' >> /usr/local/bin/startup.sh && \
     echo '  echo "⏰ 配置定时任务..."' >> /usr/local/bin/startup.sh && \
     echo '  mkdir -p /var/log && touch /var/log/cron.log' >> /usr/local/bin/startup.sh && \
     echo '  echo "# 自动生成的定时任务" > /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '  if [ "$CRON_JOBS" != "" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '  echo "SHELL=/bin/bash" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '  echo "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '  echo "" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '  # 添加CICD cronjob' >> /usr/local/bin/startup.sh && \
+    echo '  if [ "$CICD_ENABLED" = "true" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '    echo "🔄 配置CICD自动更新任务..."' >> /usr/local/bin/startup.sh && \
+    echo '    if [ -n "$GITHUB_TOKEN" ] && [ -n "$POST_UPDATE_COMMAND" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '      echo "*/5 * * * * root cd /app && export GITHUB_TOKEN=\"$GITHUB_TOKEN\" && ./GSM.sh $POST_UPDATE_COMMAND >> /var/log/cicd.log 2>&1" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '      echo "  ✅ CICD任务已添加：每5分钟检查一次更新"' >> /usr/local/bin/startup.sh && \
+    echo '      touch /var/log/cicd.log' >> /usr/local/bin/startup.sh && \
+    echo '    else' >> /usr/local/bin/startup.sh && \
+    echo '      echo "  ⚠️  CICD已启用但缺少GITHUB_TOKEN或POST_UPDATE_COMMAND环境变量"' >> /usr/local/bin/startup.sh && \
+    echo '    fi' >> /usr/local/bin/startup.sh && \
+    echo '  fi' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '  # 添加自定义CRON任务' >> /usr/local/bin/startup.sh && \
+    echo '  if [ "$CRON_ENABLED" = "true" ] && [ "$CRON_JOBS" != "" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '    echo "📝 添加自定义定时任务..."' >> /usr/local/bin/startup.sh && \
     echo '    echo "$CRON_JOBS" | tr ";" "\n" | while read -r job; do' >> /usr/local/bin/startup.sh && \
     echo '      if [ "$job" != "" ]; then' >> /usr/local/bin/startup.sh && \
     echo '        echo "$job" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
@@ -88,6 +113,8 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo '      fi' >> /usr/local/bin/startup.sh && \
     echo '    done' >> /usr/local/bin/startup.sh && \
     echo '  fi' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '  # 启动cron服务' >> /usr/local/bin/startup.sh && \
     echo '  cron' >> /usr/local/bin/startup.sh && \
     echo '  echo "✅ Cron服务已启动"' >> /usr/local/bin/startup.sh && \
     echo 'else' >> /usr/local/bin/startup.sh && \
@@ -100,7 +127,6 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo '  exit 1' >> /usr/local/bin/startup.sh && \
     echo 'fi' >> /usr/local/bin/startup.sh && \
     echo '' >> /usr/local/bin/startup.sh && \
- \
     echo '# 构建项目（如果需要）' >> /usr/local/bin/startup.sh && \
     echo 'if [ "$BUILD_ENABLED" = "true" ] || [ ! -f "$APP_MAIN_SCRIPT" ]; then' >> /usr/local/bin/startup.sh && \
     echo '  echo "🔨 构建项目..."' >> /usr/local/bin/startup.sh && \
@@ -114,6 +140,7 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo '  echo "  PORT: ${PORT:-未设置}"' >> /usr/local/bin/startup.sh && \
     echo '  echo "  NODE_ENV: ${NODE_ENV:-未设置}"' >> /usr/local/bin/startup.sh && \
     echo '  echo "  PM2_INSTANCES: ${PM2_INSTANCES:-未设置}"' >> /usr/local/bin/startup.sh && \
+    echo '  echo "  CICD_ENABLED: ${CICD_ENABLED:-未设置}"' >> /usr/local/bin/startup.sh && \
     echo '  ./pm2.sh --start --path "$APP_MAIN_SCRIPT"' >> /usr/local/bin/startup.sh && \
     echo '  pm2 logs --raw' >> /usr/local/bin/startup.sh && \
     echo 'else' >> /usr/local/bin/startup.sh && \
