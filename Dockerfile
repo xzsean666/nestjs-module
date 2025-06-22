@@ -23,7 +23,7 @@ ENV TIMEZONE=Asia/Shanghai
 ENV BUILD_ENABLED=true
 ENV CRON_ENABLED=false
 ENV CRON_JOBS=""
-ENV CICD_ENABLED=false
+ENV CICD_ENABLED=true
 ENV POST_UPDATE_COMMAND="./pm2.sh --restart --build"
 
 # 安装必要的系统依赖，包括git
