@@ -13,8 +13,9 @@ services:
     network_mode: host
     environment:
       - NODE_ENV=production
-      - USE_PM2=true
-      - APP_MAIN_SCRIPT=dist/main.js
+
+      - http_proxy=http://127.0.0.1:7897
+      - https_proxy=http://127.0.0.1:7897
     volumes:
       # 挂载整个项目目录到容器的/app目录
       - .:/app

@@ -31,7 +31,7 @@ export class AppResolver {
   @Query(() => String)
   @UseGuards()
   test() {
-    return 'Hello World6661';
+    return 'Hello World6662';
   }
   @Query(() => String)
   testadmin() {

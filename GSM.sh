@@ -20,12 +20,22 @@ fi
 # 输出时间戳
 echo "开始检查更新: $(date '+%Y-%m-%d %H:%M:%S')"
 
+# 配置Git安全设置（防止Docker权限问题）
+git config --global --add safe.directory "$(pwd)" 2>/dev/null || true
+git config --global --add safe.directory /app 2>/dev/null || true
+
+# 检查是否在Git仓库中
+if [ ! -d ".git" ]; then
+    echo "错误：当前目录不是Git仓库"
+    exit 1
+fi
+
 # 获取远程仓库 URL
 REPO_URL=$(git config --get remote.origin.url)
 
 # 如果有token，配置凭证
 if [ -n "$TOKEN" ]; then
-    git config --local credential.helper '!f() { echo "username=oauth2"; echo "password='$TOKEN'"; }; f'
+    git config credential.helper '!f() { echo "username=oauth2"; echo "password='$TOKEN'"; }; f'
 fi
 
 # 获取当前分支名
@@ -105,7 +115,7 @@ fi
 
 # 清理凭证配置
 if [ -n "$TOKEN" ]; then
-    git config --local --unset credential.helper
+    git config --unset credential.helper 2>/dev/null || true
 fi
 
 echo -e "\n检查完成: $(date '+%Y-%m-%d %H:%M:%S')"

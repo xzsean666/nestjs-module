@@ -308,6 +308,8 @@ docker-compose exec app pm2 logs --raw
 - 检查 `GITHUB_TOKEN` 是否正确设置
 - 确认 `CICD_ENABLED=true`
 - 查看 `/var/log/cicd.log` 日志
+- 确保项目目录是Git仓库（包含.git文件夹）
+- 检查Git权限问题：`docker-compose exec app git status`
 
 ### 2. 构建失败
 
@@ -320,6 +322,24 @@ docker-compose exec app pm2 logs --raw
 - 检查 `APP_MAIN_SCRIPT` 路径是否正确
 - 确认项目已正确构建
 - 查看 PM2 日志文件
+
+### 4. Git权限问题
+
+如果在CICD日志中看到 `fatal: detected dubious ownership` 错误：
+
+```bash
+# 进入容器手动修复
+docker-compose exec app bash
+
+# 添加安全目录
+git config --global --add safe.directory /app
+
+# 检查Git状态
+git status
+
+# 手动触发更新测试
+./GSM.sh
+```
 
 ## 安全注意事项
 

@@ -57,12 +57,21 @@ RUN pnpm install
 COPY GSM.sh ./
 RUN chmod +x ./GSM.sh
 
+# 配置Git安全设置，解决Docker容器中的Git权限问题
+RUN git config --global --add safe.directory /app && \
+    git config --global --add safe.directory '*'
+
 # 创建启动脚本
 RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo 'set -e' >> /usr/local/bin/startup.sh && \
     echo '' >> /usr/local/bin/startup.sh && \
     echo 'echo "🚀 容器启动中..."' >> /usr/local/bin/startup.sh && \
     echo 'cd /app' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '# 配置Git安全设置（防止权限问题）' >> /usr/local/bin/startup.sh && \
+    echo 'git config --global --add safe.directory /app 2>/dev/null || true' >> /usr/local/bin/startup.sh && \
+    echo 'git config --global --add safe.directory "*" 2>/dev/null || true' >> /usr/local/bin/startup.sh && \
+    echo 'git config --global init.defaultBranch main 2>/dev/null || true' >> /usr/local/bin/startup.sh && \
     echo '' >> /usr/local/bin/startup.sh && \
     echo '# 读取.env文件中的环境变量' >> /usr/local/bin/startup.sh && \
     echo 'if [ -f ".env" ]; then' >> /usr/local/bin/startup.sh && \
