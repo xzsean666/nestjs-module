@@ -1,8 +1,8 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { SqliteKVDatabase } from '../helpers/sdk/index';
+import { SqliteKVDatabase, SqliteValueType } from '../helpers/sdk/index';
 import { config } from '../config';
 
-export { SqliteKVDatabase };
+export { SqliteKVDatabase, SqliteValueType };
 
 @Injectable()
 export class DBLocalService implements OnModuleDestroy {
@@ -17,12 +17,15 @@ export class DBLocalService implements OnModuleDestroy {
     this.dbUrl = dbUrl;
   }
 
-  getDBInstance(tableName: string): SqliteKVDatabase {
+  getDBInstance(
+    tableName: string,
+    valueType: SqliteValueType = SqliteValueType.JSON,
+  ): SqliteKVDatabase {
     tableName = `${config.database.prefix}_${tableName}`;
     if (!this.dbInstances.has(tableName)) {
       this.dbInstances.set(
         tableName,
-        new SqliteKVDatabase(this.dbUrl, tableName),
+        new SqliteKVDatabase(this.dbUrl, tableName, valueType),
       );
     }
     return this.dbInstances.get(tableName) as SqliteKVDatabase;
@@ -37,5 +40,9 @@ export class DBLocalService implements OnModuleDestroy {
 }
 
 export const db_local_tables = {
-  lst: 'db_lst',
+  anbox_meta: 'anbox_meta',
+  app_meta: 'app_meta',
+  all_instances: 'all_instances',
+  anbox_apks: 'anbox_apks',
+  lock_db: 'lock_db',
 };

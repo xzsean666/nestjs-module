@@ -5,7 +5,7 @@ import { WeChatService } from './wechat.service';
 import { GlobalModule } from '../common/global.module';
 import { UserService } from './user.service';
 import { AuthGuard } from './auth.guard.service';
-// import { SupabaseService } from './supabase.service';
+import { SupabaseService } from './supabase.service';
 import { InviteCodeService } from './invite-code.service';
 @Module({
   imports: [GlobalModule],
@@ -15,7 +15,7 @@ import { InviteCodeService } from './invite-code.service';
     WeChatService,
     UserService,
     AuthGuard,
-    // SupabaseService,
+    SupabaseService,
     InviteCodeService,
   ],
   exports: [AuthGuard],

@@ -1,8 +1,8 @@
 {
   "name": "nestjs-module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
-  "author": "",
+  "author": "sean",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -18,22 +18,25 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "cp:startsh": "cp src/utils/sh/nestjs.sh nestjs.sh",
-    "build:sdk": "npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
+    "cp:sh": "cp src/utils/sh/pm2.sh pm2.sh && cp src/utils/sh/bot.sh bot.sh",
+    "build:sdk": "pnpm cp:sh && npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",
-    "@google/generative-ai": "^0.24.0",
+    "@google/genai": "^1.8.0",
     "@nestjs/apollo": "^13.0.3",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/graphql": "^13.0.3",
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.0.0",
+    "@nestjs/throttler": "^6.4.0",
     "@supabase/supabase-js": "^2.49.1",
     "axios": "^1.7.9",
     "commander": "^13.1.0",
     "compression": "^1.8.0",
+    "cron-parser": "^5.3.0",
     "dotenv": "^16.4.7",
     "form-data": "^4.0.2",
     "graphql": "^16.10.0",
@@ -50,8 +53,11 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sqlite3": "^5.1.7",
+    "twitter-api-v2": "^1.23.2",
     "typeorm": "^0.3.20",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "winston": "^3.17.0",
+    "winston-gelf": "^1.7.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

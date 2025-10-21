@@ -4,12 +4,12 @@ FROM node:24.2.0
 # 更换镜像源为阿里云
 # 1. 更换系统apt源为阿里云镜像
 RUN if [ -f /etc/apt/sources.list ]; then \
-        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
-        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list; \
     fi && \
     if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
-        sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
-        sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/security.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources; \
     fi
 
 # 2. 配置npm使用中国镜像源
@@ -23,7 +23,7 @@ ENV TIMEZONE=Asia/Shanghai
 ENV BUILD_ENABLED=true
 ENV CRON_ENABLED=false
 ENV CRON_JOBS=""
-ENV CICD_ENABLED=true
+ENV CICD_ENABLED=false
 ENV POST_UPDATE_COMMAND="./pm2.sh --restart --build"
 
 # 安装必要的系统依赖，包括git
@@ -95,18 +95,34 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo 'if [ "$CRON_ENABLED" = "true" ] || [ "$CICD_ENABLED" = "true" ]; then' >> /usr/local/bin/startup.sh && \
     echo '  echo "⏰ 配置定时任务..."' >> /usr/local/bin/startup.sh && \
     echo '  mkdir -p /var/log && touch /var/log/cron.log' >> /usr/local/bin/startup.sh && \
-    echo '  echo "# 自动生成的定时任务" > /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '  echo "SHELL=/bin/bash" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '  echo "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '  echo "" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '  # 初始化crontab（如果不存在）' >> /usr/local/bin/startup.sh && \
+    echo '  if [ ! -f "/etc/crontab" ] || [ ! -s "/etc/crontab" ]; then' >> /usr/local/bin/startup.sh && \
+    echo '    echo "📝 初始化crontab文件..."' >> /usr/local/bin/startup.sh && \
+    echo '    echo "# 自动生成的定时任务" > /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '    echo "SHELL=/bin/bash" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '    echo "PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '    echo "" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '  fi' >> /usr/local/bin/startup.sh && \
+    echo '' >> /usr/local/bin/startup.sh && \
+    echo '  # 函数：检查cronjob是否已存在' >> /usr/local/bin/startup.sh && \
+    echo '  check_cron_exists() {' >> /usr/local/bin/startup.sh && \
+    echo '    local pattern="$1"' >> /usr/local/bin/startup.sh && \
+    echo '    grep -Fq "$pattern" /etc/crontab 2>/dev/null' >> /usr/local/bin/startup.sh && \
+    echo '  }' >> /usr/local/bin/startup.sh && \
     echo '' >> /usr/local/bin/startup.sh && \
     echo '  # 添加CICD cronjob' >> /usr/local/bin/startup.sh && \
     echo '  if [ "$CICD_ENABLED" = "true" ]; then' >> /usr/local/bin/startup.sh && \
     echo '    echo "🔄 配置CICD自动更新任务..."' >> /usr/local/bin/startup.sh && \
     echo '    if [ -n "$GITHUB_TOKEN" ] && [ -n "$POST_UPDATE_COMMAND" ]; then' >> /usr/local/bin/startup.sh && \
-    echo '      echo "*/5 * * * * root cd /app && export GITHUB_TOKEN=\"$GITHUB_TOKEN\" && ./GSM.sh $POST_UPDATE_COMMAND >> /var/log/cicd.log 2>&1" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '      echo "  ✅ CICD任务已添加：每5分钟检查一次更新"' >> /usr/local/bin/startup.sh && \
-    echo '      touch /var/log/cicd.log' >> /usr/local/bin/startup.sh && \
+    echo '      CICD_JOB="*/5 * * * * root cd /app && export GITHUB_TOKEN=\"$GITHUB_TOKEN\" && ./GSM.sh $POST_UPDATE_COMMAND >> /var/log/cicd.log 2>&1"' >> /usr/local/bin/startup.sh && \
+    echo '      if ! check_cron_exists "GSM.sh $POST_UPDATE_COMMAND"; then' >> /usr/local/bin/startup.sh && \
+    echo '        echo "$CICD_JOB" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '        echo "  ✅ CICD任务已添加：每5分钟检查一次更新"' >> /usr/local/bin/startup.sh && \
+    echo '        touch /var/log/cicd.log' >> /usr/local/bin/startup.sh && \
+    echo '      else' >> /usr/local/bin/startup.sh && \
+    echo '        echo "  ℹ️  CICD任务已存在，跳过添加"' >> /usr/local/bin/startup.sh && \
+    echo '      fi' >> /usr/local/bin/startup.sh && \
     echo '    else' >> /usr/local/bin/startup.sh && \
     echo '      echo "  ⚠️  CICD已启用但缺少GITHUB_TOKEN或POST_UPDATE_COMMAND环境变量"' >> /usr/local/bin/startup.sh && \
     echo '    fi' >> /usr/local/bin/startup.sh && \
@@ -117,8 +133,14 @@ RUN echo '#!/bin/bash' > /usr/local/bin/startup.sh && \
     echo '    echo "📝 添加自定义定时任务..."' >> /usr/local/bin/startup.sh && \
     echo '    echo "$CRON_JOBS" | tr ";" "\n" | while read -r job; do' >> /usr/local/bin/startup.sh && \
     echo '      if [ "$job" != "" ]; then' >> /usr/local/bin/startup.sh && \
-    echo '        echo "$job" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
-    echo '        echo "  添加定时任务: $job"' >> /usr/local/bin/startup.sh && \
+    echo '        # 提取任务的关键部分用于检查（去掉时间部分）' >> /usr/local/bin/startup.sh && \
+    echo '        job_command=$(echo "$job" | sed "s/^[0-9*/ ,-]*//")' >> /usr/local/bin/startup.sh && \
+    echo '        if ! check_cron_exists "$job_command"; then' >> /usr/local/bin/startup.sh && \
+    echo '          echo "$job" >> /etc/crontab' >> /usr/local/bin/startup.sh && \
+    echo '          echo "  ✅ 添加定时任务: $job"' >> /usr/local/bin/startup.sh && \
+    echo '        else' >> /usr/local/bin/startup.sh && \
+    echo '          echo "  ℹ️  定时任务已存在，跳过: $job"' >> /usr/local/bin/startup.sh && \
+    echo '        fi' >> /usr/local/bin/startup.sh && \
     echo '      fi' >> /usr/local/bin/startup.sh && \
     echo '    done' >> /usr/local/bin/startup.sh && \
     echo '  fi' >> /usr/local/bin/startup.sh && \

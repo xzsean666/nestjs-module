@@ -1,0 +1,9 @@
+NODE_TLS_REJECT_UNAUTHORIZED=0 /bin/bash ./pm2.sh --restart
+
+NODE_TLS_REJECT_UNAUTHORIZED=0 /bin/bash ./pm2.sh --restart --build
+
+
+NODE_TLS_REJECT_UNAUTHORIZED=0 /bin/bash ./pm2.sh --start --build
+
+1
+(cd ~/proxys/ssr-data-panel-backend && ./bot.sh 'dist/app_core/standalone-anbox-script.js all')

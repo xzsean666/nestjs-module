@@ -4,6 +4,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
   createParamDecorator,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { createClient, SupabaseClient, User } from '@supabase/supabase-js';
 import { GqlExecutionContext } from '@nestjs/graphql';
@@ -29,11 +30,22 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor() {
+    if (!config.supabase.url || !config.supabase.key) {
+      console.warn(
+        'Supabase URL or Key not provided. Supabase service will not be initialized.',
+      );
+      return;
+    }
     this.supabase = createClient(config.supabase.url, config.supabase.key);
   }
 
   // 验证 JWT token
   async verifyToken(jwt: string): Promise<User> {
+    if (!this.supabase) {
+      throw new InternalServerErrorException(
+        'Supabase service is not initialized.',
+      );
+    }
     try {
       const {
         data: { user },
@@ -60,6 +72,11 @@ export class SupabaseService {
 
   // 获取 Supabase 客户端实例
   getClient(): SupabaseClient {
+    if (!this.supabase) {
+      throw new InternalServerErrorException(
+        'Supabase service is not initialized.',
+      );
+    }
     return this.supabase;
   }
 }

@@ -29,9 +29,7 @@ export class AiCardsService {
 
   constructor(private readonly dbService: DBService) {
     this.cards_db = this.dbService.getDBInstance(db_tables.cards_db);
-    this.user_cards_db = this.dbService.getDBInstance(
-      db_tables.user_study_cards,
-    );
+    this.user_cards_db = this.dbService.getDBInstance(db_tables.user_db);
   }
 
   /**

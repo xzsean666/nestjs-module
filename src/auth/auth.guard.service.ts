@@ -16,6 +16,27 @@ export const CurrentUser = createParamDecorator(
   },
 );
 
+// REST API专用的CurrentUser装饰器
+export const CurrentRestUser = createParamDecorator(
+  (data: unknown, context: ExecutionContext) => {
+    const request = context.switchToHttp().getRequest();
+    return request.user;
+  },
+);
+
+export const CheckAdmin = createParamDecorator(
+  (data: unknown, context: ExecutionContext) => {
+    const ctx = GqlExecutionContext.create(context);
+    const request = ctx.getContext().req;
+    const adminAuthCode = request.headers['admin_auth_code'];
+
+    if (!adminAuthCode || adminAuthCode !== config.auth.ADMIN_AUTH_CODE) {
+      throw new UnauthorizedException('Unauthorized: Invalid Admin Auth Code');
+    }
+    return true;
+  },
+);
+
 @Injectable()
 export class AuthGuard implements CanActivate {
   private jwtHelper: JWTHelper;
@@ -24,8 +45,19 @@ export class AuthGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
+    // 检查是否为GraphQL请求
     const gqlContext = GqlExecutionContext.create(context);
-    const { req } = gqlContext.getContext();
+    const isGraphQL = gqlContext.getType() === 'graphql';
+
+    let req: any;
+
+    if (isGraphQL) {
+      // GraphQL请求
+      req = gqlContext.getContext().req;
+    } else {
+      // REST API请求
+      req = context.switchToHttp().getRequest();
+    }
 
     const token = this.extractTokenFromHeader(req);
 

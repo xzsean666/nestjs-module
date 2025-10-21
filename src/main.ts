@@ -2,10 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { config } from './config';
 import { graphqlUploadExpress } from 'graphql-upload-minimal';
+import { CommonLogger } from './common/common-log.service';
+
 import compression from 'compression';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new CommonLogger(),
+  });
 
   // 启用 gzip 压缩以减小响应体积，提升传输速度
   app.use(
@@ -74,11 +78,21 @@ async function bootstrap() {
   // app.enableCors(corsOptions);
   app.enableCors({
     origin: '*',
-    credentials: false,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-apollo-operation-name',
+      'apollo-require-preflight',
+    ],
   });
-  app.use(graphqlUploadExpress());
 
-  // 优先使用环境变量中的端口（PM2 会设置），然后是配置文件中的端口
+  // 配置文件上传中间件，只处理 GraphQL 请求
+  app.use(
+    '/graphql',
+    graphqlUploadExpress({ maxFileSize: 1000 * 1024 * 1024, maxFiles: 5 }),
+  );
+
   const port = process.env.PORT || config.server.port || 3000;
 
   // 在集群模式下，PM2 会处理端口监听和负载均衡

@@ -3,6 +3,15 @@
 # GitHub 更新检查脚本 - 支持私有仓库
 
 # 获取 GitHub Token 和更新后操作脚本相关参数
+
+# 如果环境变量中没有 GITHUB_TOKEN，尝试从当前目录的 .env 中加载
+if [ -z "$GITHUB_TOKEN" ] && [ -f ".env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    . ./.env
+    set +a
+fi
+
 if [ -n "$GITHUB_TOKEN" ]; then
     TOKEN="$GITHUB_TOKEN"
 elif [ -n "$1" ] && [[ "$1" != /* ]]; then
