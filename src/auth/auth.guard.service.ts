@@ -9,6 +9,22 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { JWTHelper } from 'src/helpers/sdk';
 import { config } from 'src/config';
 
+/**
+ * 从执行上下文中获取请求对象，自动识别 GraphQL 或 REST API
+ */
+function getRequestFromContext(context: ExecutionContext): any {
+  const gqlContext = GqlExecutionContext.create(context);
+  const isGraphQL = gqlContext.getType() === 'graphql';
+
+  if (isGraphQL) {
+    // GraphQL请求
+    return gqlContext.getContext().req;
+  } else {
+    // REST API请求
+    return context.switchToHttp().getRequest();
+  }
+}
+
 export const CurrentUser = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
     const ctx = GqlExecutionContext.create(context);
@@ -26,14 +42,27 @@ export const CurrentRestUser = createParamDecorator(
 
 export const CheckAdmin = createParamDecorator(
   (data: unknown, context: ExecutionContext) => {
-    const ctx = GqlExecutionContext.create(context);
-    const request = ctx.getContext().req;
+    const request = getRequestFromContext(context);
     const adminAuthCode = request.headers['admin_auth_code'];
 
     if (!adminAuthCode || adminAuthCode !== config.auth.ADMIN_AUTH_CODE) {
       throw new UnauthorizedException('Unauthorized: Invalid Admin Auth Code');
     }
     return true;
+  },
+);
+export const CanUploadFile = createParamDecorator(
+  (data: unknown, context: ExecutionContext) => {
+    const request = getRequestFromContext(context);
+    const canUploadFile = request.headers['can_upload_file'];
+    const jwtUploadHelper = new JWTHelper(config.auth.JWT_SECRET);
+    const decoded = jwtUploadHelper.verifyToken(canUploadFile);
+    if (!decoded) {
+      throw new UnauthorizedException(
+        "Unauthorized: Invalid Can't Upload File",
+      );
+    }
+    return decoded;
   },
 );
 
@@ -45,19 +74,7 @@ export class AuthGuard implements CanActivate {
   }
 
   canActivate(context: ExecutionContext): boolean {
-    // 检查是否为GraphQL请求
-    const gqlContext = GqlExecutionContext.create(context);
-    const isGraphQL = gqlContext.getType() === 'graphql';
-
-    let req: any;
-
-    if (isGraphQL) {
-      // GraphQL请求
-      req = gqlContext.getContext().req;
-    } else {
-      // REST API请求
-      req = context.switchToHttp().getRequest();
-    }
+    const req = getRequestFromContext(context);
 
     const token = this.extractTokenFromHeader(req);
 

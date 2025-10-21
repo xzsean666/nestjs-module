@@ -65,6 +65,8 @@ const commonConfig = {
       process.env.JWT_EXPIRES_IN,
       60 * 60 * 24 * 15,
     ),
+    JWT_FILE_UPLOAD_SECRET:
+      process.env.JWT_FILE_UPLOAD_SECRET || 'default-jwt-file-upload-secret',
   },
   supabase: {
     url: process.env.SUPABASE_URL || '',
