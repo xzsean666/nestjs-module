@@ -1,8 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { WeChatService } from './wechat.service';
 import { UserService } from './user.service';
 import { SupabaseService } from './supabase.service';
-import { cacheFn } from '../common/cache.service';
 
 @Injectable()
 export class AuthService {
@@ -12,33 +16,43 @@ export class AuthService {
     private supabaseService: SupabaseService,
   ) {}
 
-  @cacheFn(60 * 60 * 1)
   async wechatLogin(code: string) {
-    // Delegate to specialized WeChat service
+    if (!code?.trim()) {
+      throw new BadRequestException('WeChat code is required');
+    }
+
     const wechatResult = await this.wechatService.verifyToken(code);
+    if (!wechatResult?.user_id) {
+      throw new UnauthorizedException('Unable to resolve WeChat user');
+    }
+
     const user_account = `wechat_${wechatResult.user_id}`;
-    const user_info = await this.userService.generateToken(user_account);
-    return user_info;
+    return this.userService.generateToken(user_account);
   }
-  @cacheFn(60 * 60 * 1)
+
   async supabaseLogin(code: string) {
+    if (!code?.trim()) {
+      throw new BadRequestException('Supabase token is required');
+    }
+
     try {
       const supabase_user = await this.supabaseService.verifyToken(code);
       if (!supabase_user?.id) {
-        throw new Error('Supabase user id not found');
+        throw new UnauthorizedException('Supabase user id not found');
       }
       const user_account = `supabase_${supabase_user.id}`;
-      const user_info = await this.userService.generateToken(user_account);
-      return user_info;
+      return this.userService.generateToken(user_account);
     } catch (error: any) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       console.error('supabaseLogin error:', error?.message || error);
-      throw new Error(error?.message || 'Invalid code');
+      throw new UnauthorizedException('Invalid code');
     }
   }
-  @cacheFn(60 * 60 * 1)
+
   async mockLogin(user_id = '66666666666666666666666666666666') {
-    const user_info = await this.userService.generateToken(user_id);
-    return user_info;
+    return this.userService.generateToken(user_id);
   }
 
   // Additional authentication methods can be added here
