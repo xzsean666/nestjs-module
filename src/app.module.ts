@@ -15,6 +15,7 @@ import { CronResolver } from './app-cron.resolver';
 import { FileUploadLocalModule } from './common_modules/file-upload-local/file-upload-local.module';
 import { GraphQLThrottlerGuard } from './common/graphql-throttler.guard';
 import { config } from './config';
+import { AlertMessageService } from './common/alert.message.service';
 
 // import { JpushModule } from './mobile_common/jpush/jpush.module';
 
@@ -75,6 +76,7 @@ if (config.fileUpload.enabled) {
   providers: [
     AppResolver,
     CronResolver,
+    AlertMessageService,
     {
       provide: APP_GUARD,
       useClass: GraphQLThrottlerGuard,

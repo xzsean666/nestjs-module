@@ -8,3 +8,7 @@ type Query {
   test2: String!
   testadmin: String!
 }
+
+type Mutation {
+  sendAlert(message: String!, alertLevel: Float! = 65): Boolean!
+}

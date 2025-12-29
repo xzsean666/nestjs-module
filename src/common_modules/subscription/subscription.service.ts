@@ -602,7 +602,7 @@ export class SubscriptionService {
     // 获取所有订阅
     const allSubscriptions = await this.all_subscriptions.getAll();
 
-    for (const [key, value] of allSubscriptions) {
+    for (const [key, value] of Object.entries(allSubscriptions)) {
       const subscription = value as UserSubscription;
       stats.total++;
 

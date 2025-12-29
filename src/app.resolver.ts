@@ -16,6 +16,7 @@ import { cacheFn } from './common/cache.service';
 
 import { AuthGuard, CurrentUser } from './auth/auth.guard.service';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
+import { AlertMessageService } from './common/alert.message.service';
 
 @ObjectType()
 export class KeyValue {
@@ -41,6 +42,7 @@ export class AppResolver {
   private readonly logger = new Logger(AppResolver.name);
   constructor(
     private readonly dbService: DBService,
+    private readonly alertMessageService: AlertMessageService,
     // private readonly fileUploadService: FileUploadLocalService,
   ) {
     this.db = dbService.getDBInstance('test');
@@ -78,6 +80,16 @@ export class AppResolver {
   @Query(() => String)
   testadmin() {
     return 'Hello admin';
+  }
+
+  @Mutation(() => Boolean)
+  sendAlert(
+    @Args('message') message: string,
+    @Args('alertLevel', { type: () => Number, defaultValue: 65 })
+    alertLevel: number,
+  ) {
+    this.alertMessageService.sendAlertImmediate(message, alertLevel);
+    return true;
   }
 
   // @Mutation(() => UploadFileResult)

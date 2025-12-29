@@ -143,7 +143,7 @@ export class SystemMessageService {
     const now = Date.now();
 
     // 过滤出个人消息并添加已读状态
-    const personalMessages = Array.from(allMessages.values())
+    const personalMessages = (Object.values(allMessages) as Message[])
       .filter(
         (msg: Message) =>
           msg.type === MessageType.PERSONAL && msg.userId === userId,
@@ -152,7 +152,7 @@ export class SystemMessageService {
 
     // 获取已读状态
     const messagesWithStatus = await Promise.all(
-      personalMessages.map(async (msg) => {
+      personalMessages.map(async (msg: Message) => {
         const isRead = await this.getMessageReadStatus(msg.id, userId);
         return { ...msg, isRead };
       }),
@@ -166,7 +166,7 @@ export class SystemMessageService {
     const allMessages = await this.message_db.getAll();
     const now = Date.now();
 
-    const globalMessages = Array.from(allMessages.values())
+    const globalMessages = (Object.values(allMessages) as Message[])
       .filter((msg: Message) => msg.type === MessageType.GLOBAL)
       .filter((msg: Message) => !msg.expiresAt || msg.expiresAt > now)
       .sort((a: Message, b: Message) => b.createdAt - a.createdAt);

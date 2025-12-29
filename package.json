@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "cp:sh": "cp src/utils/sh/pm2.sh pm2.sh && cp src/utils/sh/bot.sh bot.sh",
-    "build:sdk": "pnpm cp:sh && npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
+    "build:sdk": "npx ts-node src/utils/scripts/copyDependencies.ts --input src/sdk/index.ts --output src/helpers"
   },
   "dependencies": {
     "@apollo/server": "^4.11.3",

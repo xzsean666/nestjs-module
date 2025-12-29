@@ -247,7 +247,7 @@ export class PromoteCodeService {
     const allCodes = await this.promoteCodesDB.getAll();
     const activeCodes: PromoteCode[] = [];
 
-    for (const [key, value] of allCodes) {
+    for (const [key, value] of Object.entries(allCodes)) {
       const promoteCode = value as PromoteCode;
       if (
         promoteCode.isActive &&
@@ -345,7 +345,7 @@ export class PromoteCodeService {
 
     const now = new Date();
 
-    for (const [key, value] of allCodes) {
+    for (const [key, value] of Object.entries(allCodes)) {
       const promoteCode = value as PromoteCode;
       total++;
       totalUsage += promoteCode.usedCount;

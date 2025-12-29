@@ -6,6 +6,13 @@ import {
   parseBooleanEnv,
 } from './env-parser.helper';
 
+export interface AlertRuleConfig {
+  minLevel: number;
+  maxLevel?: number;
+  repeatCount: number;
+  repeatIntervalSeconds: number;
+}
+
 interface AppConfig {
   database: {
     prefix: string;
@@ -47,9 +54,83 @@ interface AppConfig {
   fileUpload: {
     enabled: boolean;
   };
+  ALERT_CONFIG?: {
+    SLACK_WEBHOOK_URL?: string;
+    DING_WEBHOOK_URL?: string;
+    DING_WEBHOOK_SECRET?: string;
+    FEISHU_WEBHOOK_URL?: string;
+    FEISHU_WEBHOOK_SECRET?: string;
+    HOST_NAME?: string;
+    REPEAT_COUNT?: number;
+    REPEAT_INTERVAL?: number;
+    rules?: AlertRuleConfig[];
+  };
 }
 
 dotenvConfig();
+
+const defaultAlertRules: AlertRuleConfig[] = [
+  {
+    minLevel: 60,
+    maxLevel: 80,
+    repeatCount: 1,
+    repeatIntervalSeconds: 60,
+  },
+  {
+    minLevel: 80,
+    repeatCount: 3,
+    repeatIntervalSeconds: 10,
+  },
+];
+
+function loadAlertRules(): AlertRuleConfig[] {
+  const rawRules = process.env.ALERT_RULES;
+  if (!rawRules) {
+    return defaultAlertRules;
+  }
+
+  try {
+    const parsed = JSON.parse(rawRules);
+    if (!Array.isArray(parsed)) {
+      return defaultAlertRules;
+    }
+
+    const normalized = parsed
+      .map((rule) => {
+        const minLevel = Number(rule.minLevel ?? rule.min);
+        const maxValue = rule.maxLevel ?? rule.max;
+        const repeatCount = Number(rule.repeatCount ?? rule.repeat);
+        const repeatIntervalSeconds = Number(
+          rule.repeatIntervalSeconds ??
+            rule.repeatInterval ??
+            rule.intervalSeconds ??
+            rule.interval,
+        );
+
+        if (!Number.isFinite(minLevel) || !Number.isFinite(repeatCount)) {
+          return null;
+        }
+
+        const maxLevel = Number(maxValue);
+        return {
+          minLevel,
+          maxLevel: Number.isFinite(maxLevel) ? maxLevel : undefined,
+          repeatCount,
+          repeatIntervalSeconds: Number.isFinite(repeatIntervalSeconds)
+            ? repeatIntervalSeconds
+            : 60,
+        } as AlertRuleConfig;
+      })
+      .filter((rule): rule is AlertRuleConfig => !!rule);
+
+    return normalized.length ? normalized : defaultAlertRules;
+  } catch (error) {
+    console.warn('Failed to parse ALERT_RULES, using default alert rules', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return defaultAlertRules;
+  }
+}
 
 const commonConfig = {
   database: {
@@ -92,6 +173,15 @@ const commonConfig = {
   PUBLIC_IP: process.env.PUBLIC_IP,
   fileUpload: {
     enabled: parseBooleanEnv(process.env.ENABLE_FILE_UPLOAD, false),
+  },
+  ALERT_CONFIG: {
+    SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL,
+    DING_WEBHOOK_URL: process.env.DING_WEBHOOK_URL,
+    DING_WEBHOOK_SECRET: process.env.DING_WEBHOOK_SECRET,
+    FEISHU_WEBHOOK_URL: process.env.FEISHU_WEBHOOK_URL,
+    FEISHU_WEBHOOK_SECRET: process.env.FEISHU_WEBHOOK_SECRET,
+    HOST_NAME: process.env.HOST_NAME,
+    rules: loadAlertRules(),
   },
 };
 
