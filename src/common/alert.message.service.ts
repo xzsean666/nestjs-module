@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import * as crypto from 'crypto';
 import { config, AlertRuleConfig } from '../config';
 
@@ -8,6 +8,10 @@ export class AlertMessageService {
   private readonly logger = new Logger(AlertMessageService.name);
   private readonly alertConfig = config.ALERT_CONFIG;
   private readonly rules: AlertRuleConfig[] = this.alertConfig?.rules ?? [];
+  // Force webhook calls to bypass HTTP(S)_PROXY to avoid proxy 400 errors in container
+  private readonly httpClient: AxiosInstance = axios.create({
+    proxy: false,
+  });
 
   async sendAlert(message: string, alertLevel: number): Promise<void> {
     if (!this.alertConfig) {
@@ -48,7 +52,9 @@ export class AlertMessageService {
     const formattedMessage = this.formatMessage(message);
 
     for (let i = 0; i < repeatCount; i++) {
-      await this.dispatch(formattedMessage);
+      const repeatSuffix =
+        repeatCount > 1 ? ` (repeat ${i + 1}/${repeatCount})` : '';
+      await this.dispatch(`${formattedMessage}${repeatSuffix}`);
       if (i < repeatCount - 1) {
         await this.delay(intervalMs);
       }
@@ -111,7 +117,9 @@ export class AlertMessageService {
     }
 
     try {
-      await axios.post(this.alertConfig.SLACK_WEBHOOK_URL, { text: message });
+      await this.httpClient.post(this.alertConfig.SLACK_WEBHOOK_URL, {
+        text: message,
+      });
       return true;
     } catch (error) {
       this.logger.error(`Slack send failed: ${this.stringifyError(error)}`);
@@ -126,9 +134,11 @@ export class AlertMessageService {
     }
 
     try {
-      await axios.post(url, {
+      await this.httpClient.post(url, {
         msgtype: 'text',
-        text: { content: message },
+        text: {
+          content: `Alert:\n${message}`,
+        },
       });
       return true;
     } catch (error) {
@@ -175,15 +185,15 @@ export class AlertMessageService {
       const timestamp = Math.floor(Date.now() / 1000).toString();
       const stringToSign = `${timestamp}\n${this.alertConfig.FEISHU_WEBHOOK_SECRET}`;
       const sign = crypto
-        .createHmac('sha256', stringToSign)
-        .update('')
+        .createHmac('sha256', this.alertConfig.FEISHU_WEBHOOK_SECRET)
+        .update(stringToSign)
         .digest('base64');
       body.timestamp = timestamp;
       body.sign = sign;
     }
 
     try {
-      await axios.post(url, body);
+      await this.httpClient.post(url, body);
       return true;
     } catch (error) {
       this.logger.error(`Feishu send failed: ${this.stringifyError(error)}`);
